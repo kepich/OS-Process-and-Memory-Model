@@ -1,6 +1,8 @@
 
 public enum ProcessStatus {
-	READY,
-	EXECUTE,
-	IDLE
+	READINESS,
+	EXECUTION,
+	WAITING,
+	CREATION,
+	KILLING
 }
