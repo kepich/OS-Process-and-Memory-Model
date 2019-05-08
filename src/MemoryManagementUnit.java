@@ -18,12 +18,15 @@ public class MemoryManagementUnit {
 	private					HashMap<Byte, Byte[]> 	Storage			= new HashMap<Byte, Byte[]>();		// Main data storage
 	private					HashMap<Byte, Byte[]> 	RAM				= new HashMap<Byte, Byte[]>();
 	
-	public MemoryManagementUnit() {
+	private					byte					boardOfSystem;
+	
+	public MemoryManagementUnit(byte boardOfSystem) {
 		/*
 		 * 
 		 * 			Create initialisation of system (loading height and low adresses)
 		 * 
 		 */
+		this.boardOfSystem = boardOfSystem;
 		for(byte i = 0; i < this.NumberOfPages; i++) {
 			this.TableOfPages[i] 	= 0x00;
 			this.BitMap[i]			= false;
@@ -46,5 +49,20 @@ public class MemoryManagementUnit {
 	
 	private void Paging(byte VirtualAdress) {
 		//******************************************************************
+		int usedMostSeldom = this.LastHanling[(byte) (this.boardOfSystem + 1)];
+		int index = (byte) (this.boardOfSystem + 1);
+		
+		for (int i = this.boardOfSystem + 1; i < this.NumberOfPages; i++) {			// Searching most seldom used
+			if(usedMostSeldom > this.LastHanling[i]) {
+				usedMostSeldom = this.LastHanling[i];
+				index = i;
+			}
+		}
+		
+		// Save on disk storage temp page
+		
+		byte[] storedPage = this.RAM.get(this.TableOfPages)
+		this.Storage.put(index, this.RAM.get(this.TableOfPages))
+		//this.Storage[index] = 
 	}
 }
