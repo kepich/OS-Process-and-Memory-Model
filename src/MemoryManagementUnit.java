@@ -1,3 +1,5 @@
+import java.util.*;
+
 /*
  * PageSize					= 4098 kB 		/ 		12 bits
  * NumberOfPages			= 16			/ 		4 bits (virt) / 3 bits(phys)
@@ -7,15 +9,25 @@
  */
 
 public class MemoryManagementUnit {
-	private		final		int			PageSize		= 4098;								// Size of one page
-	private		final		byte		NumberOfPages	= 16;								// Size of pages table
-	private					byte[]		TableOfPages	= new byte[this.NumberOfPages];		// Table of pages
-	private					boolean[]	BitMap			= new boolean[this.NumberOfPages];	// Mapping pges into physical memory
+	private		final		int						PageSize		= 4098;								// Size of one page
+	private		final		byte					NumberOfPages	= 16;								// Size of pages table
+	private					byte[]					TableOfPages	= new byte[this.NumberOfPages];		// Table of pages
+	private					boolean[]				BitMap			= new boolean[this.NumberOfPages];	// Mapping pages into physical memory
+	private					int[]					LastHanling		= new int[this.NumberOfPages];		// Delay of last handling to pages
+	
+	private					HashMap<Byte, Byte[]> 	Storage			= new HashMap<Byte, Byte[]>();		// Main data storage
+	private					HashMap<Byte, Byte[]> 	RAM				= new HashMap<Byte, Byte[]>();
 	
 	public MemoryManagementUnit() {
+		/*
+		 * 
+		 * 			Create initialisation of system (loading height and low adresses)
+		 * 
+		 */
 		for(byte i = 0; i < this.NumberOfPages; i++) {
 			this.TableOfPages[i] 	= 0x00;
 			this.BitMap[i]			= false;
+			this.LastHanling[i]		= 0;
 		}
 	}
 	
@@ -28,11 +40,11 @@ public class MemoryManagementUnit {
 				return newAddress;
 			}
 			else
-				this.Paging();
+				this.Paging(row);
 		}
 	}
 	
-	private void Paging() {
-		
+	private void Paging(byte VirtualAdress) {
+		//******************************************************************
 	}
 }
