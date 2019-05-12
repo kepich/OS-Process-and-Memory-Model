@@ -30,6 +30,10 @@ public class Process {
 		this.Registers 			= 0x00;									// Default registers
 	}
 	
+	public byte GetPID() {
+		return PID;
+	}
+	
 	public void Display() {
 		System.out.println(Integer.toHexString(PID) + "\t" + Integer.toString(CreationTime) + "\t"+ Integer.toHexString(CommandCounter) + "\t" + ProcessStatus.toString() 
 		+ "\t" + Integer.toString(MemoryVolume) + "\t" + Integer.toHexString(Priority) + "\t" + MemorySegments.toString());

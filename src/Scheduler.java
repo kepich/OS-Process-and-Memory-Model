@@ -13,6 +13,33 @@ public class Scheduler {																// Priority range:
 		this.inputProcessStream.offer(newProcess);
 	}
 	
+	public void Display() {
+		
+		ArrayDeque<Byte> inp = new ArrayDeque<Byte>();
+		ArrayDeque<Byte> p1 = new ArrayDeque<Byte>();
+		ArrayDeque<Byte> p2 = new ArrayDeque<Byte>();
+		ArrayDeque<Byte> p3 = new ArrayDeque<Byte>();
+		ArrayDeque<Byte> p4 = new ArrayDeque<Byte>();
+		
+		for(Process i: inputProcessStream)
+			inp.push(i.GetPID());
+		for(Process i: priority_1)
+			p1.push(i.GetPID());
+		for(Process i: priority_2)
+			p2.push(i.GetPID());
+		for(Process i: priority_3)
+			p3.push(i.GetPID());
+		for(Process i: priority_4)
+			p4.push(i.GetPID());
+		
+		
+		System.out.println("INPUT : \t" + inp.toString());
+		System.out.println("0 - 7 : \t" + p1.toString());
+		System.out.println("8 -15 : \t" + p2.toString());
+		System.out.println("16-23 : \t" + p3.toString());
+		System.out.println("24-31 : \t" + p4.toString());
+	}
+	
 	private void Distribute() {															// Get all processes from the input stream and put its into appropriate queue
 		while (!this.inputProcessStream.isEmpty()) {
 			Process temp = this.inputProcessStream.poll();

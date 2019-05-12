@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Random;
 // TODO:
 // - Empty process
 // - Create processes opportunities to make waiting itself
@@ -10,7 +11,7 @@ public class main {
 	private static			int						systemTimer;
 	private static			Process 				tempExecutedProcess;
 	
-	
+	private static final	int						START_GENERATION = 10;
 	private	static final	byte					AMOUNT_OF_ALLOWED_TICKS = 8;
 	private static final	byte					SYSTEM_DATA_BOARD = 1;	// 1 page
 	
@@ -40,6 +41,20 @@ public class main {
 			
 			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.EXECUTION)
 				tempExecutedProcess.SetReady();
+			
+			systemTimer++;
+			
+			System.out.println("SystemTimer = " + Integer.toString(systemTimer));
+			System.out.println("Temp Executed Process: " + Integer.toString(tempExecutedProcess.GetPID()));
+			scheduler.Display();
+			mmu.Display();
+			
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
+
 }
