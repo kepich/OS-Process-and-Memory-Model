@@ -46,32 +46,42 @@ public class Scheduler {																// Priority range:
 		this.Distribute();
 		
 		Process resultProcess = null;
-		if (!this.priority_4.isEmpty()) {
-			resultProcess = this.priority_4.poll();
-			resultProcess.ReducePriority();
-			this.AddProcessIntoQueue(resultProcess);
+		
+		while (true) {
+			if (!this.priority_4.isEmpty()) {
+				resultProcess = this.priority_4.poll();
+				resultProcess.ReducePriority();
+				this.AddProcessIntoQueue(resultProcess);
+			}
+			else if (!this.priority_3.isEmpty()) {
+				resultProcess = this.priority_3.poll();
+				resultProcess.ReducePriority();
+				this.AddProcessIntoQueue(resultProcess);
+			}
+			else if (!this.priority_2.isEmpty()) {
+				resultProcess = this.priority_2.poll();
+				resultProcess.ReducePriority();
+				this.AddProcessIntoQueue(resultProcess);
+			}
+			else if (!this.priority_1.isEmpty()) {
+				resultProcess = this.priority_1.poll();
+				resultProcess.ReducePriority();
+				this.AddProcessIntoQueue(resultProcess);
+			}
+			else {																			// Create idle process
+				resultProcess = new Process((byte)0x7F, "System_idle", 0, (byte) 0x00, 0, 1);
+				/*
+				 * INSERT MEMORY ALLOCATING SYSTEM
+				 */
+			}
+
+
+			if(resultProcess.GetProcessStatus() == ProcessStatus.KILLING)
+				continue;
+			else
+				break;
 		}
-		else if (!this.priority_3.isEmpty()) {
-			resultProcess = this.priority_3.poll();
-			resultProcess.ReducePriority();
-			this.AddProcessIntoQueue(resultProcess);
-		}
-		else if (!this.priority_2.isEmpty()) {
-			resultProcess = this.priority_2.poll();
-			resultProcess.ReducePriority();
-			this.AddProcessIntoQueue(resultProcess);
-		}
-		else if (!this.priority_1.isEmpty()) {
-			resultProcess = this.priority_1.poll();
-			resultProcess.ReducePriority();
-			this.AddProcessIntoQueue(resultProcess);
-		}
-		else {																			// Create idle process
-			resultProcess = new Process((byte)0x7F, "System_idle", 0, (byte) 0x00, 0, 1);
-			/*
-			 * INSERT MEMORY ALLOCATING SYSTEM
-			 */
-		}
+		
 		return resultProcess;
 	}
 }
