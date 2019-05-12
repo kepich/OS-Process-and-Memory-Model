@@ -8,7 +8,8 @@ public class ProcessGenerator {
 			"windefender" };
 	private	ArrayList<Process> 	processTable;
 	private	int					maxMemoryVolume;
-	private	int					maxProcessorTime;		
+	private	int					maxProcessorTime;
+	private static byte			prevPID = 0x00;
 	
 	public ProcessGenerator(ArrayList<Process> procTable, int maxVol, int maxProcTime) {
 		processTable 		= procTable;
@@ -20,30 +21,21 @@ public class ProcessGenerator {
 		Random 				rand 	= new Random();
 		ArrayList<Process> 	result 	= new ArrayList<Process>();
 		
-		for (int i = 0; i < START_GENERATION; i++) {
-			byte 	tempPID 			= 0x00;
-			String 	tempName			= processesNames[rand.nextInt() % processesNames.length];
-			int		tempCreationTime	= TEMP_TIME;
-			byte	tempPriority		= (byte) (rand.nextInt() % 32);
-			int		tempMemoryVolume	= rand.nextInt() % maxMemoryVolume;
-			int		tempProcTime		= rand.nextInt() % maxProcessorTime;
-			
-			for (byte k = 0x00; ; k++) {
-				boolean cool = true;
-				for(Process j: processTable) {
-					if(j.GetPID() == k)
-						cool = false;
-					break;
-				}
-				if(cool) {
-					tempPID = k;
-					break;
-				}
+		if(START_GENERATION != 0) {
+			for (int i = 0; i < START_GENERATION; i++) {
+				byte 	tempPID 			= (byte) (prevPID++ + 1);
+				String 	tempName			= processesNames[Math.abs(rand.nextInt()) % processesNames.length];
+				int		tempCreationTime	= TEMP_TIME;
+				byte	tempPriority		= (byte) (Math.abs(rand.nextInt()) % 32);
+				int		tempMemoryVolume	= Math.abs(rand.nextInt()) % (maxMemoryVolume * 4096);
+				int		tempProcTime		= Math.abs(rand.nextInt()) % maxProcessorTime;
+				
+				result.add(new Process(tempPID, tempName, tempCreationTime, tempPriority, tempMemoryVolume, tempProcTime));
 			}
-			
-			result.add(new Process(tempPID, tempName, tempCreationTime, tempPriority, tempMemoryVolume, tempProcTime));
 		}
-		
+		else {
+			result.add(new Process((byte) 0x01, "SYSTEM_IDLE", TEMP_TIME, (byte)0, 1, 1));
+		}
 		return result;
 	}
 }

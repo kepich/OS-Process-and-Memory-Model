@@ -10,9 +10,11 @@ public class Process {
 	private			byte				Priority;			// Range: 0:31				//	UPDATE:	TASK_MANAGER / ***
 	private			int					Registers;										//	UPDATE:	EXEC
 	private			int					ProceesorTime;									//	UPDATE: EXEC
-	private			byte				NextNeededAdress;	// Adress exec. command		//	UPDATE: EXEC
+	private			int					NextNeededAdress;	// Adress exec. command		//	UPDATE: EXEC
 	
 	private	final	int					ChanceOfWaiting 	= 5;						// Chanse of blocking process
+	private	final	int					ChanceOfWakeUp	 	= 60;						// Chanse of blocking process
+	private final	int					PageSize			= 4096;
 	
 	public 			String 				Name;				// Name of .exe file		//	***
 	public 			int 				CreationTime;		// Time of creation			//	***
@@ -47,6 +49,7 @@ public class Process {
 	public void AllocateMemory(ArrayDeque<Byte> MemorySegment) {		// Initialisation Mem. Segm.
 		this.MemorySegments = MemorySegment;
 		this.ProcessStatus = ProcessStatus.READINESS;
+		NextNeededAdress = MemorySegment.getFirst() * PageSize;
 	}
 	
 	public ArrayDeque<Byte>	GetMemorySegments(){
@@ -81,7 +84,8 @@ public class Process {
 		this.ProcessStatus = ProcessStatus.EXECUTION;
 	}
 	
-	public byte Execute() {												// Executing function
+	public int Execute() {												// Executing function
+		Random rand = new Random(System.currentTimeMillis());
 		if((ProcessStatus == ProcessStatus.EXECUTION) || (ProcessStatus == ProcessStatus.READINESS)) {
 			this.ProcessStatus = ProcessStatus.EXECUTION;
 			this.CommandCounter++;
@@ -92,14 +96,19 @@ public class Process {
 				this.ProcessStatus = ProcessStatus.KILLING;
 			
 			// Imitation process behavior
-			Random rand = new Random(System.currentTimeMillis());
-			if ((rand.nextInt() % 100) < ChanceOfWaiting)
+			if ((Math.abs(rand.nextInt() % 100)) < ChanceOfWaiting)
 				this.ProcessStatus = ProcessStatus.WAITING;
 		}
-		
+		else {
+			if((Math.abs(rand.nextInt() % 100)) < ChanceOfWakeUp) {
+				this.ProcessStatus = ProcessStatus.EXECUTION;
+			}
+		}
 
-			
-		return this.ProcessStatus;
+		if(ProcessStatus == ProcessStatus.EXECUTION) 				// Creating reauest for needed data on this address
+			return MemorySegments.getLast() * PageSize + Math.abs(rand.nextInt()) % MemoryVolume;
+		else
+			return 0x00;
 	}
 	
 	

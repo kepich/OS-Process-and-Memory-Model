@@ -1,7 +1,8 @@
-import java.util.HashMap;
 import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Random;
 /*
- * PageSize					= 4098 kB 		/ 		12 bits
+ * PageSize					= 4096 kB 		/ 		12 bits
  * NumberOfPages			= 16			/ 		4 bits (virt) / 3 bits(phys)
  * PhysicalMemoryVolume		= 32784 kB		/ 		8 pages
  * VirtualMemoryVolume		= 65568 kB		/ 		16 pages
@@ -16,7 +17,7 @@ public class MemoryManagementUnit {
 	private	final 	byte					NumberOfPages	= 16;									// Size of page table
 	private			byte[]					TableOfPages	= new byte[this.NumberOfPages];			// Table of pages
 	private			boolean[]				BitMap			= new boolean[this.NumberOfPages];		// Mapping pages into physical memory
-	private			int[]					LastHandling	= new int[this.NumberOfPages / 2];		// Delay of last handling to pages !!! IN RAM !!!
+	private			int[]					LastHandling	= new int[this.NumberOfPages];			// Delay of last handling to pages !!! IN RAM !!!
 	
 	private			HashMap<Byte, Byte[]> 	Storage			= new HashMap<Byte, Byte[]>();			// Main data storage
 	private			HashMap<Byte, Byte[]> 	RAM				= new HashMap<Byte, Byte[]>();
@@ -41,7 +42,7 @@ public class MemoryManagementUnit {
 		}
 	}
 	public int getPhysicalAdress(int virtualAdress) {
-		for (int i = 0; i < LastHandling.length; i++)			// Last handling update
+		for (int i = boardOfSystem; i < LastHandling.length; i++)			// Last handling update
 			LastHandling[i]++;
 		
 		while(true) {
@@ -53,40 +54,64 @@ public class MemoryManagementUnit {
 				return newAddress;
 			}
 			else
-				this.Paging(row);	// Page fault situation
+				this.Paging(virtualAdress);	// Page fault situation
 		}
 	}
-	private void Paging(byte VirtualAdress) {
+	private void Paging(int VirtualAdress) {
 		//******************************************************************
-		int usedMostSeldom = this.LastHandling[(byte) (this.boardOfSystem + 1)];
-		byte index = (byte) (this.boardOfSystem + 1);
+		int usedMostSeldom = this.LastHandling[(byte) (this.boardOfSystem)];
+		byte index = (byte) (this.boardOfSystem);
+		// Checking free space in RAM
+		boolean isFullRAM = (RAM.size() == NumberOfPages / 2);
 		
-		for (byte i = (byte) (this.boardOfSystem + 1); i < this.NumberOfPages; i++) {			// Searching most seldom used
-			if((usedMostSeldom > this.LastHandling[i]) && this.BitMap[i]) {
-				usedMostSeldom = this.LastHandling[i];
-				index = i;
+		if(isFullRAM) {
+			for (byte i = (byte) (this.boardOfSystem); i < this.NumberOfPages; i++) {			// Searching most seldom used
+				if((usedMostSeldom >= this.LastHandling[i]) && this.BitMap[i]){
+					usedMostSeldom = this.LastHandling[i];
+					index = i;
+				}
 			}
+			
+			// Save on disk storage temp page and restore needed page
+			Byte[] storedPage = this.RAM.get(this.TableOfPages[index]);
+			byte temp = (byte) (VirtualAdress / this.PageSize);
+			Byte[] restoredPage = this.Storage.get(temp);
+			
+			// Saving unused page and restoring needed page
+			this.Storage.put(index, storedPage);
+			this.RAM.put(this.TableOfPages[index], restoredPage);
+			
+			// Correct tables
+			this.BitMap[index] = false;
+			this.BitMap[VirtualAdress / this.PageSize] = true;
+			this.TableOfPages[VirtualAdress / this.PageSize] = this.TableOfPages[index];
+			
+		}
+		else {
+			byte physAddr = 0x00;		// Free address in RAM							
+			// Searching free space in RAM
+			for(byte i = boardOfSystem; i < NumberOfPages / 2; i++) {
+				if(RAM.get(i) == null) {
+					physAddr = i;
+					break;
+				}
+			}
+			
+			byte temp = (byte) (VirtualAdress / this.PageSize);
+			Byte[] restoredPage = this.Storage.get(temp);
+			
+			this.RAM.put(physAddr, restoredPage);
+			this.BitMap[VirtualAdress / this.PageSize] = true;
+			this.TableOfPages[VirtualAdress / this.PageSize] = physAddr;
 		}
 		
-		// Save on disk storage temp page and restore needed page
-		Byte[] storedPage = this.RAM.get(this.TableOfPages[index]);
-		Byte[] restoredPage = this.Storage.get(VirtualAdress / this.PageSize);
-		
-		// Saving unused page and restoring needed page
-		this.Storage.put(index, storedPage);
-		this.RAM.put(this.TableOfPages[index], restoredPage);
-		
-		// Correct tables
-		this.BitMap[index] = false;
-		this.BitMap[VirtualAdress / this.PageSize] = true;
-		this.TableOfPages[VirtualAdress / this.PageSize] = this.TableOfPages[index];
 	}
 	public boolean AllocateMemory(Process proc) {
 		int memVol 		= proc.GetMemoryVolume();
 		int neededPages = memVol / PageSize + ((memVol % PageSize > 0) ? 1 : 0);
-		
+		Random rand = new Random(System.nanoTime());
 		int searchingSpace = 0;
-		byte segmentPosition = 0x00;
+		byte segmentPosition = boardOfSystem;
 		for (byte i = boardOfSystem; i < NumberOfPages; i++) {
 			if (TableOfPages[i] == 0x00)							// Page is free
 				searchingSpace++;
@@ -100,7 +125,12 @@ public class MemoryManagementUnit {
 				for (byte j = 0; j < neededPages; j++) {
 					memory.push((byte) (segmentPosition + j));
 					TableOfPages[segmentPosition + j] = 0x01;
+					Byte[] procData = {proc.GetPID(), proc.GetPID()};
+					Storage.put((byte)(segmentPosition + j), procData);
 				}
+				
+				
+				
 				proc.AllocateMemory(memory);
 				return true;
 			}

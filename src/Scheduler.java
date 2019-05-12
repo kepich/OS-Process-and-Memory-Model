@@ -32,12 +32,17 @@ public class Scheduler {																// Priority range:
 		for(Process i: priority_4)
 			p4.push(i.GetPID());
 		
+		String buf = inp.toString();
+		buf = p1.toString();
+		buf = p2.toString();
+		buf = p3.toString();
+		buf = p4.toString();
 		
 		System.out.println("INPUT : \t" + inp.toString());
 		System.out.println("0 - 7 : \t" + p1.toString());
 		System.out.println("8 -15 : \t" + p2.toString());
 		System.out.println("16-23 : \t" + p3.toString());
-		System.out.println("24-31 : \t" + p4.toString());
+		System.out.println("24-31 : \t" + buf);
 	}
 	
 	private void Distribute() {															// Get all processes from the input stream and put its into appropriate queue
@@ -82,16 +87,12 @@ public class Scheduler {																// Priority range:
 			resultProcess = this.priority_2.poll();
 		else if (!this.priority_1.isEmpty())
 			resultProcess = this.priority_1.poll();
-		else {
-			/*
-			 * Creating idle process
-			 */
-		}
 
-		if(resultProcess.GetProcessStatus() != ProcessStatus.KILLING) {
-			resultProcess.ReducePriority();
-			this.AddProcessIntoQueue(resultProcess);
-		}
+		if(resultProcess != null)
+			if(resultProcess.GetProcessStatus() != ProcessStatus.KILLING) {
+				resultProcess.ReducePriority();
+				this.AddProcessIntoQueue(resultProcess);
+			}
 		
 		return resultProcess;
 	}
