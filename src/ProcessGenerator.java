@@ -10,7 +10,7 @@ public class ProcessGenerator {
 	private	int					maxMemoryVolume;
 	private	int					maxProcessorTime;		
 	
-	public ProcessGenerator(int generation, ArrayList<Process> procTable, int maxVol, int maxProcTime) {
+	public ProcessGenerator(ArrayList<Process> procTable, int maxVol, int maxProcTime) {
 		processTable 		= procTable;
 		maxMemoryVolume		= maxVol;
 		maxProcessorTime	= maxProcTime;

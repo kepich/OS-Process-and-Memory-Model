@@ -1,17 +1,21 @@
 import java.util.ArrayDeque;
+import java.util.Random;
 
 public class Process {
-	private 	byte 				PID;				// Process identificator	//	***
-	private		byte				CommandCounter;									// 	UPDATE: EXEC
-	private		ProcessStatus		ProcessStatus;									//	UPDATE:	TASK_MANAGER
-	private		ArrayDeque<Byte>	MemorySegments;									//	UPDATE:	MEM_MANAGER
-	private		int					MemoryVolume;									//	***
-	private		byte				Priority;			// Range: 0:31				//	UPDATE:	TASK_MANAGER / ***
-	private		int					Registers;										//	UPDATE:	EXEC
-	private		int					ProceesorTime;									//	UPDATE: EXEC
+	private 		byte 				PID;				// Process identificator	//	***
+	private			int					CommandCounter;									// 	UPDATE: EXEC
+	private			ProcessStatus		ProcessStatus;									//	UPDATE:	TASK_MANAGER
+	private			ArrayDeque<Byte>	MemorySegments;									//	UPDATE:	MEM_MANAGER
+	private			int					MemoryVolume;									//	***
+	private			byte				Priority;			// Range: 0:31				//	UPDATE:	TASK_MANAGER / ***
+	private			int					Registers;										//	UPDATE:	EXEC
+	private			int					ProceesorTime;									//	UPDATE: EXEC
+	private			byte				NextNeededAdress;	// Adress exec. command		//	UPDATE: EXEC
 	
-	public 		String 				Name;				// Name of .exe file		//	***
-	public 		int 				CreationTime;		// Time of creation			//	***
+	private	final	int					ChanceOfWaiting 	= 5;						// Chanse of blocking process
+	
+	public 			String 				Name;				// Name of .exe file		//	***
+	public 			int 				CreationTime;		// Time of creation			//	***
 	
 	public Process(byte PID, String Name, int CreationTime, byte Priority, int MemoryVolume, int ProcessorTime) {
 		
@@ -22,6 +26,7 @@ public class Process {
 		this.Priority 			= Priority;
 		this.MemoryVolume 		= MemoryVolume;
 		this.ProceesorTime		= ProcessorTime;
+		this.NextNeededAdress	= 0x00;
 // ***************************************************
 		
 		this.CommandCounter 	= 0;
@@ -42,6 +47,10 @@ public class Process {
 	public void AllocateMemory(ArrayDeque<Byte> MemorySegment) {		// Initialisation Mem. Segm.
 		this.MemorySegments = MemorySegment;
 		this.ProcessStatus = ProcessStatus.READINESS;
+	}
+	
+	public ArrayDeque<Byte>	GetMemorySegments(){
+		return MemorySegments;
 	}
 	
 	public ProcessStatus GetProcessStatus() {
@@ -68,18 +77,28 @@ public class Process {
 		this.ProcessStatus = ProcessStatus.WAITING;
 	}
 	
-	public void SetExecuting() {									// Set process executable
+	public void SetExecuting() {										// Set process executable
 		this.ProcessStatus = ProcessStatus.EXECUTION;
 	}
 	
-	public ProcessStatus Execute() {								// Executing function
-		this.CommandCounter++;
-		this.Registers++;
-		this.ProceesorTime--;
+	public byte Execute() {												// Executing function
+		if((ProcessStatus == ProcessStatus.EXECUTION) || (ProcessStatus == ProcessStatus.READINESS)) {
+			this.ProcessStatus = ProcessStatus.EXECUTION;
+			this.CommandCounter++;
+			this.Registers++;
+			this.ProceesorTime--;
+			
+			if(this.ProceesorTime <= 0) 
+				this.ProcessStatus = ProcessStatus.KILLING;
+			
+			// Imitation process behavior
+			Random rand = new Random(System.currentTimeMillis());
+			if ((rand.nextInt() % 100) < ChanceOfWaiting)
+				this.ProcessStatus = ProcessStatus.WAITING;
+		}
 		
-		if(this.ProceesorTime <= 0) 
-			this.ProcessStatus = ProcessStatus.KILLING;
-		
+
+			
 		return this.ProcessStatus;
 	}
 	

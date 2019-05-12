@@ -12,7 +12,7 @@ import java.util.ArrayDeque;
  */
 
 public class MemoryManagementUnit {
-	private	final 	int						PageSize		= 4098;									// Size of one page
+	private	final 	int						PageSize		= 4096;									// Size of one page
 	private	final 	byte					NumberOfPages	= 16;									// Size of page table
 	private			byte[]					TableOfPages	= new byte[this.NumberOfPages];			// Table of pages
 	private			boolean[]				BitMap			= new boolean[this.NumberOfPages];		// Mapping pages into physical memory
@@ -41,6 +41,9 @@ public class MemoryManagementUnit {
 		}
 	}
 	public int getPhysicalAdress(int virtualAdress) {
+		for (int i = 0; i < LastHandling.length; i++)			// Last handling update
+			LastHandling[i]++;
+		
 		while(true) {
 			// Search needed page in table and check it for mapping
 			byte row = (byte) (virtualAdress / this.PageSize);
@@ -110,5 +113,15 @@ public class MemoryManagementUnit {
 		for (int i = 0; i < this.NumberOfPages; i++) {
 			System.out.println(Integer.toHexString(i) + "\t\t" + Integer.toHexString(TableOfPages[i]) + "\t\t" + Boolean.toString(BitMap[i]));
 		}
+	}
+	public void KillProcess(Process proc) {								// Cleaning All information about processes from RAM
+		ArrayDeque<Byte> MemorySegments = proc.GetMemorySegments();
+		for(Byte i: MemorySegments) {
+			Storage.remove(i);
+			if(BitMap[i])
+				RAM.remove(TableOfPages[i]);
+			TableOfPages[i] = 0x00;
+		}
+		
 	}
 }
