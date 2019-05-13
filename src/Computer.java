@@ -30,9 +30,6 @@ public class Computer {
 		for (Process i : processTable)
 			scheduler.AddNewProcess(i);
 		
-		Scanner in = new Scanner(System.in);
-		
-		
 		// WORKING
 		while(true) {
 			tempExecutedProcess = scheduler.getTempExecutedProcess();					// Getting temp executed process from scheduler
@@ -42,7 +39,7 @@ public class Computer {
 				continue;
 			}
 			
-			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.KILLING) {
+			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) {
 				processTable.remove(tempExecutedProcess);
 				mmu.KillProcess(tempExecutedProcess);
 				continue;
@@ -67,7 +64,7 @@ public class Computer {
 			for (byte i = 0; i < AMOUNT_OF_ALLOWED_TICKS; i++) {
 				systemTimer++;
 				int nextAdress = tempExecutedProcess.Execute();						// Process executing
-				if ((tempExecutedProcess.GetProcessStatus() == ProcessStatus.KILLING) || (tempExecutedProcess.GetProcessStatus() == ProcessStatus.WAITING))
+				if ((tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) || (tempExecutedProcess.GetProcessStatus() == ProcessStatus.BLOCKING))
 					break;
 				else
 					mmu.getPhysicalAdress(nextAdress);									// Execution imitation
@@ -78,19 +75,35 @@ public class Computer {
 			
 			systemTimer++;
 			
-			System.out.println("SystemTimer = " + Integer.toString(systemTimer));
-			System.out.println("Temp Executed Process: " + Integer.toString(tempExecutedProcess.GetPID()));
-			scheduler.Display();
-			mmu.Display();
-			/*
-			try {
-				Thread.sleep(3000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			*/
-			in.nextLine();
+			InfoDelay();
 		}
+	}
+	
+	private static void InfoDelay() {
+		Scanner in = new Scanner(System.in);
+		System.out.println("\n\n\n********************************************************************************");
+		System.out.println("********************************************************************************");
+		System.out.println("********************************************************************************");
+		System.out.println("********************************************************************************\n");
+		System.out.println("----------------------------------------");
+		System.out.println("SystemTimer:\t\t" + Integer.toString(systemTimer));
+		System.out.println("Temp Executed Process:\t" + Integer.toString(tempExecutedProcess.GetPID()));
+		System.out.println("----------------------------------------");
+		scheduler.Display();
+		mmu.Display();
+		DisplayTable();
+		in.nextLine();
+	}
+	
+	private static void DisplayTable() {
+		System.out.println("\n\t Process Table");
+		System.out.println("********************************************************************************");
+		System.out.println("PID\tCrTime\tComCntr\tStat\t\tMemVol\tPrior\tMemSeg");
+		System.out.println("********************************************************************************");
+		for(Process i: processTable) {
+			i.Display();
+		}
+		System.out.println("********************************************************************************");	
 	}
 
 }

@@ -38,6 +38,10 @@ public class Scheduler {																// Priority range:
 		buf = p3.toString();
 		buf = p4.toString();
 		
+		System.out.println("\n\t Scheduler");
+		System.out.println("****************************************");
+		System.out.println("Priority\tQueue");
+		System.out.println("****************************************");
 		System.out.println("INPUT : \t" + inp.toString());
 		System.out.println("0 - 7 : \t" + p1.toString());
 		System.out.println("8 -15 : \t" + p2.toString());
@@ -89,7 +93,7 @@ public class Scheduler {																// Priority range:
 			resultProcess = this.priority_1.poll();
 
 		if(resultProcess != null)
-			if(resultProcess.GetProcessStatus() != ProcessStatus.KILLING) {
+			if(resultProcess.GetProcessStatus() != ProcessStatus.ISKILLING) {
 				resultProcess.ReducePriority();
 				this.AddProcessIntoQueue(resultProcess);
 			}

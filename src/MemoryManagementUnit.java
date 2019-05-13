@@ -24,6 +24,10 @@ public class MemoryManagementUnit {
 	
 	private			byte					boardOfSystem;
 	
+	private			int						lastVirtAdress 	= 0x00;
+	private			int						lastPhysAdress 	= 0x00;
+	private			byte					lastNeededPage 	= 0;
+	
 	public MemoryManagementUnit(byte boardOfSystem) {
 		
 		// Initialisation of all tables	***********************************
@@ -51,6 +55,11 @@ public class MemoryManagementUnit {
 			if (this.BitMap[row]) {
 				int newAddress = virtualAdress % this.PageSize + this.TableOfPages[row] * this.PageSize;
 				this.LastHandling[row] = 0;
+				
+				lastVirtAdress = virtualAdress;
+				lastPhysAdress = newAddress;
+				lastNeededPage = row;
+				
 				return newAddress;
 			}
 			else
@@ -139,7 +148,14 @@ public class MemoryManagementUnit {
 		return false;
 	}
 	public void Display() {
-		System.out.println("Index\t\tPages\t\tMapping");
+		System.out.println("\n\tVirtual Memory Table");
+		System.out.println("****************************************");
+		System.out.println("lastPhysAdress:\t" + lastPhysAdress);
+		System.out.println("lastVirtAdress:\t" + lastVirtAdress);
+		System.out.println("lastNeededPage:\t" + lastNeededPage);
+		System.out.println("****************************************");
+		System.out.println("VirtAddr\tPhysAddr\tMapping");
+		System.out.println("****************************************");
 		for (int i = 0; i < this.NumberOfPages; i++) {
 			System.out.println(Integer.toHexString(i) + "\t\t" + Integer.toHexString(TableOfPages[i]) + "\t\t" + Boolean.toString(BitMap[i]));
 		}
@@ -151,6 +167,7 @@ public class MemoryManagementUnit {
 			if(BitMap[i])
 				RAM.remove(TableOfPages[i]);
 			TableOfPages[i] = 0x00;
+			BitMap[i] = false;
 		}
 		
 	}

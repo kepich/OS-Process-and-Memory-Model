@@ -2,7 +2,7 @@
 public enum ProcessStatus {
 	READINESS,
 	EXECUTION,
-	WAITING,
+	BLOCKING,
 	CREATION,
-	KILLING
+	ISKILLING
 }

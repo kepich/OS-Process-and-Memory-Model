@@ -34,7 +34,7 @@ public class ProcessGenerator {
 			}
 		}
 		else {
-			result.add(new Process((byte) 0x01, "SYSTEM_IDLE", TEMP_TIME, (byte)0, 1, 1));
+			result.add(new Process((byte) 0x01, "SYSTEM_IDLE", TEMP_TIME, (byte)0, 1, 8));
 		}
 		return result;
 	}

@@ -43,7 +43,7 @@ public class Process {
 	
 	public void Display() {
 		System.out.println(Integer.toHexString(PID) + "\t" + Integer.toString(CreationTime) + "\t"+ Integer.toHexString(CommandCounter) + "\t" + ProcessStatus.toString() 
-		+ "\t" + Integer.toString(MemoryVolume) + "\t" + Integer.toHexString(Priority) + "\t" + MemorySegments.toString());
+		+ "\t" + Integer.toString(MemoryVolume) + "\t" + Integer.toHexString(Priority) + "\t" + ((MemorySegments != null)? MemorySegments.toString() : "null"));
 	}
 	
 	public void AllocateMemory(ArrayDeque<Byte> MemorySegment) {		// Initialisation Mem. Segm.
@@ -77,7 +77,7 @@ public class Process {
 	}
 	
 	public void SetWaiting() {
-		this.ProcessStatus = ProcessStatus.WAITING;
+		this.ProcessStatus = ProcessStatus.BLOCKING;
 	}
 	
 	public void SetExecuting() {										// Set process executable
@@ -93,11 +93,11 @@ public class Process {
 			this.ProceesorTime--;
 			
 			if(this.ProceesorTime <= 0) 
-				this.ProcessStatus = ProcessStatus.KILLING;
+				this.ProcessStatus = ProcessStatus.ISKILLING;
 			
 			// Imitation process behavior
 			if ((Math.abs(rand.nextInt() % 100)) < ChanceOfWaiting)
-				this.ProcessStatus = ProcessStatus.WAITING;
+				this.ProcessStatus = ProcessStatus.BLOCKING;
 		}
 		else {
 			if((Math.abs(rand.nextInt() % 100)) < ChanceOfWakeUp) {
