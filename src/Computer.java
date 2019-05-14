@@ -36,12 +36,14 @@ public class Computer {
 			
 			if(tempExecutedProcess == null) {											// Creating idle process
 				processTable = procGenerator.GenerateProcessPopulation(systemTimer, 0);
+				InfoDelay();
 				continue;
 			}
 			
 			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) {
 				processTable.remove(tempExecutedProcess);
 				mmu.KillProcess(tempExecutedProcess);
+				InfoDelay();
 				continue;
 			}
 			
@@ -54,16 +56,22 @@ public class Computer {
 					 */
 				}
 				else {
-					/*
-					 * Not enough memory to initialise this process
-					 * 
-					 */
+					mmu.KillProcess(tempExecutedProcess);
+					processTable.remove(tempExecutedProcess);
+					InfoDelay();
+					System.out.print("ERROR!!! NOT ENOUGHT MEMORY FOR: ");
+					System.out.println("Name\tPID\tCrTime\tComCntr\tStat\t\tMemVol\tPrior\tMemSeg");
+					System.out.println("********************************************************************************");
+					System.out.print(tempExecutedProcess.GetName());
+					tempExecutedProcess.Display();
+					continue;
 				}
 			}
 			
 			for (byte i = 0; i < AMOUNT_OF_ALLOWED_TICKS; i++) {
 				systemTimer++;
 				int nextAdress = tempExecutedProcess.Execute();						// Process executing
+				InfoDelay();
 				if ((tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) || (tempExecutedProcess.GetProcessStatus() == ProcessStatus.BLOCKING))
 					break;
 				else
@@ -72,8 +80,6 @@ public class Computer {
 			
 			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.EXECUTION)
 				tempExecutedProcess.SetReady();
-			
-			systemTimer++;
 			
 			InfoDelay();
 		}

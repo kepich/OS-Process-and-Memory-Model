@@ -13,7 +13,7 @@ public class Process {
 	private			int					NextNeededAdress;	// Adress exec. command		//	UPDATE: EXEC
 	
 	private	final	int					ChanceOfWaiting 	= 5;						// Chanse of blocking process
-	private	final	int					ChanceOfWakeUp	 	= 60;						// Chanse of blocking process
+	private	final	int					ChanceOfWakeUp	 	= 5;						// Chanse of blocking process
 	private final	int					PageSize			= 4096;
 	
 	public 			String 				Name;				// Name of .exe file		//	***
@@ -56,6 +56,10 @@ public class Process {
 		return MemorySegments;
 	}
 	
+	public String GetName(){
+		return Name;
+	}
+	
 	public ProcessStatus GetProcessStatus() {
 		return this.ProcessStatus;
 	}
@@ -64,8 +68,8 @@ public class Process {
 		return this.MemoryVolume;
 	}
 	
-	public byte ReducePriority() {										// Decrease process priority
-		return (this.Priority - 1) == 0x7f ? this.Priority = 0x00 : --this.Priority;
+	public void ReducePriority() {										// Decrease process priority
+		this.Priority = (byte) ((this.Priority - 1) == 0xffffffff ? this.Priority = 0x00 : (this.Priority - 1));
 	}
 	
 	public byte GetPriority() {

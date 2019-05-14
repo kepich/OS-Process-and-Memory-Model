@@ -43,6 +43,8 @@ public class MemoryManagementUnit {
 			this.TableOfPages[i]	= (byte) (i + 1);
 			this.BitMap[i]			= true;
 			this.LastHandling[i]	= 0;
+			Byte[] os = {(byte) 0x7f, (byte) 0x7f};
+			this.RAM.put((byte) 0, os);
 		}
 	}
 	public int getPhysicalAdress(int virtualAdress) {
@@ -120,13 +122,13 @@ public class MemoryManagementUnit {
 		int neededPages = memVol / PageSize + ((memVol % PageSize > 0) ? 1 : 0);
 		Random rand = new Random(System.nanoTime());
 		int searchingSpace = 0;
-		byte segmentPosition = boardOfSystem;
-		for (byte i = boardOfSystem; i < NumberOfPages; i++) {
+		byte segmentPosition = 0;
+		for (byte i = 0; i < NumberOfPages; i++) {
 			if (TableOfPages[i] == 0x00)							// Page is free
 				searchingSpace++;
 			else {
 				searchingSpace = 0;
-				segmentPosition = i;
+				segmentPosition = (byte) (i + 1);
 			}
 			
 			if(searchingSpace == neededPages) {						// Space is founded
@@ -159,16 +161,25 @@ public class MemoryManagementUnit {
 		for (int i = 0; i < this.NumberOfPages; i++) {
 			System.out.println(Integer.toHexString(i) + "\t\t" + Integer.toHexString(TableOfPages[i]) + "\t\t" + Boolean.toString(BitMap[i]));
 		}
+		
+//		System.out.println("\nRAM:\t");
+//		for(byte i = 0x00; i < NumberOfPages / 2; i++)
+//			System.out.print(i + "\t");
+//		System.out.println(RAM.toString());
+//		System.out.println("\n");
+//		System.out.println(Storage.toString());
 	}
 	public void KillProcess(Process proc) {								// Cleaning All information about processes from RAM
 		ArrayDeque<Byte> MemorySegments = proc.GetMemorySegments();
-		for(Byte i: MemorySegments) {
-			Storage.remove(i);
-			if(BitMap[i])
-				RAM.remove(TableOfPages[i]);
-			TableOfPages[i] = 0x00;
-			BitMap[i] = false;
-		}
 		
+		if(MemorySegments != null) {
+			for(Byte i: MemorySegments) {
+				Storage.remove(i);
+				if(BitMap[i])
+					RAM.remove(TableOfPages[i]);
+				TableOfPages[i] = 0x00;
+				BitMap[i] = false;
+			}
+		}
 	}
 }
