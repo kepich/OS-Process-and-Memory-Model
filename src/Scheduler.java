@@ -1,4 +1,5 @@
 import java.util.ArrayDeque;
+import java.util.Random;
 
 //- Priority planner with several(4) priority queue
 public class Scheduler {																// Priority range:
@@ -8,6 +9,8 @@ public class Scheduler {																// Priority range:
 	private ArrayDeque<Process> priority_1 				= new ArrayDeque<Process>();	// 7 - 0
 	
 	private ArrayDeque<Process> inputProcessStream 		= new ArrayDeque<Process>();	// All input processes
+	
+	private static final int CHANCE_OF_SYSTEM_PROCESS_WAKEUP = 20;
 	
 	public void AddNewProcess(Process newProcess) {										// Add new process into scheduler
 		this.inputProcessStream.offer(newProcess);
@@ -38,8 +41,7 @@ public class Scheduler {																// Priority range:
 		buf = p3.toString();
 		buf = p4.toString();
 		
-		System.out.println("\n\t Scheduler");
-		System.out.println("****************************************");
+		System.out.println("****************Scheduler***************");
 		System.out.println("Priority\tQueue");
 		System.out.println("****************************************");
 		System.out.println("INPUT : \t" + inp.toString());
@@ -83,21 +85,51 @@ public class Scheduler {																// Priority range:
 		
 		Process resultProcess = null;
 	
-		if (!this.priority_4.isEmpty())
-			resultProcess = this.priority_4.poll();
-		else if (!this.priority_3.isEmpty())
-			resultProcess = this.priority_3.poll();
-		else if (!this.priority_2.isEmpty())
-			resultProcess = this.priority_2.poll();
-		else if (!this.priority_1.isEmpty())
-			resultProcess = this.priority_1.poll();
-
-		if(resultProcess != null)
-			if(resultProcess.GetProcessStatus() != ProcessStatus.ISKILLING) {
-				resultProcess.ReducePriority();
-				this.AddProcessIntoQueue(resultProcess);
-			}
+		resultProcess = this.priority_4.poll();
 		
+		if((resultProcess.GetPID() == 0x00) && (resultProcess.GetProcessStatus() == ProcessStatus.BLOCKING)) {
+			/*
+			 * Imitating unpredictable system process behavior ****************************
+			 */
+			Random r = new Random();
+			if(Math.abs(r.nextInt()) % 100 < CHANCE_OF_SYSTEM_PROCESS_WAKEUP)
+				resultProcess.SetReady();
+			//*****************************************************************************
+			
+			if (!this.priority_4.isEmpty()) {
+				this.AddProcessIntoQueue(resultProcess);
+				resultProcess = this.priority_4.poll();
+			}
+			else if (!this.priority_3.isEmpty()) {
+				this.AddProcessIntoQueue(resultProcess);
+				resultProcess = this.priority_3.poll();
+			}
+			else if (!this.priority_2.isEmpty()) {
+				this.AddProcessIntoQueue(resultProcess);
+				resultProcess = this.priority_2.poll();
+			}
+			else if (!this.priority_1.isEmpty()) {
+				this.AddProcessIntoQueue(resultProcess);
+				resultProcess = this.priority_1.poll();
+			}
+		}
+
+		if(resultProcess.GetProcessStatus() != ProcessStatus.ISKILLING) {
+			if(resultProcess.GetPID() != 0x00)
+				resultProcess.ReducePriority();
+			this.AddProcessIntoQueue(resultProcess);
+		}
 		return resultProcess;
+	}
+
+	public void KillProcess(Process p) {
+		if(priority_1.contains(p))
+			priority_1.remove(p);
+		if(priority_2.contains(p))
+			priority_1.remove(p);
+		if(priority_3.contains(p))
+			priority_1.remove(p);
+		if(priority_4.contains(p))
+			priority_1.remove(p);
 	}
 }

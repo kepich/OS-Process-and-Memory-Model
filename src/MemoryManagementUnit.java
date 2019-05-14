@@ -1,14 +1,13 @@
 import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.Random;
 /*
  * PageSize					= 4096 kB 		/ 		12 bits
- * NumberOfPages			= 16			/ 		4 bits (virt) / 3 bits(phys)
+ * NumberOfPages			= 16			/ 		4 bits (virtual) / 3 bits(physical)
  * PhysicalMemoryVolume		= 32784 kB		/ 		8 pages
  * VirtualMemoryVolume		= 65568 kB		/ 		16 pages
  * TypeOfManagement			= Paging
  * 
- * System's files are stored in low adresses (1 Page, but, if you want, you can cange it in configs <boardOfSystems>)
+ * System's files are stored in low addresses (1 Page, but, if you want, you can change it in configurations <boardOfSystems>)
  * 
  */
 
@@ -30,7 +29,7 @@ public class MemoryManagementUnit {
 	
 	public MemoryManagementUnit(byte boardOfSystem) {
 		
-		// Initialisation of all tables	***********************************
+		// Initialization of all tables	***********************************
 		this.boardOfSystem = boardOfSystem;
 		for(byte i = boardOfSystem; i < this.NumberOfPages; i++) {
 			this.TableOfPages[i] 	= 0x00;
@@ -48,7 +47,7 @@ public class MemoryManagementUnit {
 		}
 	}
 	public int getPhysicalAdress(int virtualAdress) {
-		for (int i = boardOfSystem; i < LastHandling.length; i++)			// Last handling update
+		for (int i = boardOfSystem; i < LastHandling.length; i++)								// Last handling update
 			LastHandling[i]++;
 		
 		while(true) {
@@ -118,56 +117,60 @@ public class MemoryManagementUnit {
 		
 	}
 	public boolean AllocateMemory(Process proc) {
-		int memVol 		= proc.GetMemoryVolume();
-		int neededPages = memVol / PageSize + ((memVol % PageSize > 0) ? 1 : 0);
-		Random rand = new Random(System.nanoTime());
-		int searchingSpace = 0;
-		byte segmentPosition = 0;
-		for (byte i = 0; i < NumberOfPages; i++) {
-			if (TableOfPages[i] == 0x00)							// Page is free
-				searchingSpace++;
-			else {
-				searchingSpace = 0;
-				segmentPosition = (byte) (i + 1);
-			}
-			
-			if(searchingSpace == neededPages) {						// Space is founded
-				ArrayDeque<Byte> memory = new ArrayDeque<Byte>();	// Allocating memory
-				for (byte j = 0; j < neededPages; j++) {
-					memory.push((byte) (segmentPosition + j));
-					TableOfPages[segmentPosition + j] = 0x01;
-					Byte[] procData = {proc.GetPID(), proc.GetPID()};
-					Storage.put((byte)(segmentPosition + j), procData);
+		if (proc.GetPID() != 0x00) {
+			int memVol 		= proc.GetMemoryVolume();
+			int neededPages = memVol / PageSize + ((memVol % PageSize > 0) ? 1 : 0);
+			int searchingSpace = 0;
+			byte segmentPosition = 0;
+			for (byte i = 0; i < NumberOfPages; i++) {
+				if (TableOfPages[i] == 0x00)							// Page is free
+					searchingSpace++;
+				else {
+					searchingSpace = 0;
+					segmentPosition = (byte) (i + 1);
 				}
 				
-				
-				
-				proc.AllocateMemory(memory);
-				return true;
+				if(searchingSpace == neededPages) {						// Space is founded
+					ArrayDeque<Byte> memory = new ArrayDeque<Byte>();	// Allocating memory
+					for (byte j = 0; j < neededPages; j++) {
+						memory.push((byte) (segmentPosition + j));
+						TableOfPages[segmentPosition + j] = 0x01;
+						Byte[] procData = {proc.GetPID(), proc.GetPID()};
+						Storage.put((byte)(segmentPosition + j), procData);
+					}
+					proc.AllocateMemory(memory);
+					return true;
+				}
 			}
 		}
-		
+		else {
+			ArrayDeque<Byte> memory = new ArrayDeque<Byte>();			// Allocating memory
+			memory.push((byte)(0x00));
+			proc.AllocateMemory(memory);
+			return true;
+		}
 		return false;
 	}
 	public void Display() {
-		System.out.println("\n\tVirtual Memory Table");
-		System.out.println("****************************************");
-		System.out.println("lastPhysAdress:\t" + lastPhysAdress);
-		System.out.println("lastVirtAdress:\t" + lastVirtAdress);
-		System.out.println("lastNeededPage:\t" + lastNeededPage);
-		System.out.println("****************************************");
-		System.out.println("VirtAddr\tPhysAddr\tMapping");
-		System.out.println("****************************************");
-		for (int i = 0; i < this.NumberOfPages; i++) {
-			System.out.println(Integer.toHexString(i) + "\t\t" + Integer.toHexString(TableOfPages[i]) + "\t\t" + Boolean.toString(BitMap[i]));
-		}
+		System.out.println("*****************************Virtual Memory Table*******************************");
+		System.out.println("lastPhysAdress:\t" + lastPhysAdress + "\t\tlastVirtAdress:\t" + lastVirtAdress + "\t\tlastNeededPage:\t" + lastNeededPage);
+		System.out.println("********************************************************************************");
 		
-//		System.out.println("\nRAM:\t");
-//		for(byte i = 0x00; i < NumberOfPages / 2; i++)
-//			System.out.print(i + "\t");
-//		System.out.println(RAM.toString());
-//		System.out.println("\n");
-//		System.out.println(Storage.toString());
+		System.out.print("VirtAddr  |\t");
+		for (int i = 0; i < this.NumberOfPages; i++) {
+			System.out.print(Integer.toHexString(i));
+		}
+		System.out.println();
+		System.out.print("PhysAddr  |\t");
+		for (int i = 0; i < this.NumberOfPages; i++) {
+			System.out.print(Integer.toHexString(TableOfPages[i]));
+		}
+		System.out.println();
+		System.out.print("tMapping  |\t");
+		for (int i = 0; i < this.NumberOfPages; i++) {
+			System.out.print((BitMap[i]) ? 1 : 0);
+		}
+		System.out.println();
 	}
 	public void KillProcess(Process proc) {								// Cleaning All information about processes from RAM
 		ArrayDeque<Byte> MemorySegments = proc.GetMemorySegments();
