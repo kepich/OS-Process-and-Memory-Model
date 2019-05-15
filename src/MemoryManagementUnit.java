@@ -39,7 +39,7 @@ public class MemoryManagementUnit {
 		
 		// OS data initialisation	***************************************
 		for(byte i = 0; i < this.boardOfSystem; i++) {
-			this.TableOfPages[i]	= (byte) (i + 1);
+			this.TableOfPages[i]	= i;
 			this.BitMap[i]			= true;
 			this.LastHandling[i]	= 0;
 			Byte[] os = {(byte) 0x7f, (byte) 0x7f};
@@ -123,7 +123,7 @@ public class MemoryManagementUnit {
 			int searchingSpace = 0;
 			byte segmentPosition = 0;
 			for (byte i = 0; i < NumberOfPages; i++) {
-				if (TableOfPages[i] == 0x00)							// Page is free
+				if ((TableOfPages[i] == 0x00) && !BitMap[i])							// Page is free
 					searchingSpace++;
 				else {
 					searchingSpace = 0;
@@ -169,6 +169,24 @@ public class MemoryManagementUnit {
 		System.out.print("tMapping  |\t");
 		for (int i = 0; i < this.NumberOfPages; i++) {
 			System.out.print((BitMap[i]) ? 1 : 0);
+		}
+		System.out.println();
+		
+		System.out.print("Addr:\t");
+		for(byte i = 0x00; i < (NumberOfPages / 2); i++)
+			System.out.print(i);
+		System.out.println();
+		System.out.print("Page:\t");
+		for(byte i = 0x00; i < (NumberOfPages / 2); i++) {
+			boolean isMapped = false;
+			byte tempPage = 0x00;
+			for(tempPage = 0x00; tempPage < NumberOfPages; tempPage++)
+				if((TableOfPages[tempPage] == i) && BitMap[tempPage]) {
+					isMapped = true;
+					break;
+				}
+			
+			System.out.print(isMapped ? Integer.toHexString(tempPage) : 0);
 		}
 		System.out.println();
 	}

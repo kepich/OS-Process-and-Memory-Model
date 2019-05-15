@@ -123,13 +123,15 @@ public class Scheduler {																// Priority range:
 	}
 
 	public void KillProcess(Process p) {
+		if(inputProcessStream.contains(p))
+			inputProcessStream.remove(p);
 		if(priority_1.contains(p))
 			priority_1.remove(p);
 		if(priority_2.contains(p))
-			priority_1.remove(p);
+			priority_2.remove(p);
 		if(priority_3.contains(p))
-			priority_1.remove(p);
+			priority_3.remove(p);
 		if(priority_4.contains(p))
-			priority_1.remove(p);
+			priority_4.remove(p);
 	}
 }

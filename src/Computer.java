@@ -40,9 +40,7 @@ public class Computer {
 			tempExecutedProcess = scheduler.getTempExecutedProcess();					// Getting temp executed process from scheduler
 			
 			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) {
-				processTable.remove(tempExecutedProcess);
-				mmu.KillProcess(tempExecutedProcess);
-				scheduler.KillProcess(tempExecutedProcess);
+				KillProcess(tempExecutedProcess);
 				InfoDelay();
 				continue;
 			}
@@ -56,9 +54,7 @@ public class Computer {
 					 */
 				}
 				else {
-					mmu.KillProcess(tempExecutedProcess);
-					processTable.remove(tempExecutedProcess);
-					scheduler.KillProcess(tempExecutedProcess);
+					KillProcess(tempExecutedProcess);
 					System.out.println("ERROR!!! NOT ENOUGHT MEMORY FOR: ");
 					System.out.println("Name\tPID\tCrTime\tComCntr\tStat\t\tMemVol\tPrior\tMemSeg");
 					System.out.println("********************************************************************************");
@@ -96,7 +92,7 @@ public class Computer {
 		System.out.println("SystemTimer:\t\t" + Integer.toString(systemTimer));
 		System.out.println("Temp Executed Process (PID, Name, MemSeg):\t" + Integer.toString(tempExecutedProcess.GetPID()) + "\t"  + tempExecutedProcess.GetName() + 
 				"\t" + tempExecutedProcess.GetMemorySegments().toString());
-		System.out.println("--------------------------------------------------------------------------------\n\n\n\n\n\n\n\n");
+		System.out.println("--------------------------------------------------------------------------------\n\n\n\n");
 		in.nextLine();
 	}
 	
@@ -113,9 +109,17 @@ public class Computer {
 		Process processTable_BUFFER = null;
 		
 		if((Math.abs(RAND.nextInt()) % 100) < PROCESS_SPAWNING_CHANCE) {
+			System.out.println("Creating process");
 			processTable_BUFFER = procGenerator.GenerateProcessPopulation(systemTimer, 1).get(0);
 			processTable.add(processTable_BUFFER);
 			scheduler.AddNewProcess(processTable_BUFFER);
 		}
+	}
+	
+	private static void KillProcess(Process p) {
+		System.out.println("Killing process");
+		mmu.KillProcess(p);
+		processTable.remove(p);
+		scheduler.KillProcess(p);
 	}
 }
