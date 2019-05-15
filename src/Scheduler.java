@@ -82,21 +82,16 @@ public class Scheduler {																// Priority range:
 	
 	public Process getTempExecutedProcess() {											// Planning processes 
 		this.Distribute();
-		
-		Process resultProcess = null;
-	
-		resultProcess = this.priority_4.poll();
-		
-		if((resultProcess.GetPID() == 0x00) && (resultProcess.GetProcessStatus() == ProcessStatus.BLOCKING)) {
-			/*
-			 * Imitating unpredictable system process behavior ****************************
-			 */
+		Process resultProcess = this.priority_4.poll();
+
+		if((resultProcess.GetPID() == 0x00) && (resultProcess.GetProcessStatus() == ProcessStatus.BLOCKING)) {	// If it's SYSTEM process and it's is blocked (Ready for executing another processes
+		 	// Imitating unpredictable system process behavior ****************************
 			Random r = new Random();
-			if(Math.abs(r.nextInt()) % 100 < CHANCE_OF_SYSTEM_PROCESS_WAKEUP)
+			if(Math.abs(r.nextInt()) % 100 < CHANCE_OF_SYSTEM_PROCESS_WAKEUP)			// Waking up SYSTEM process with some probability
 				resultProcess.SetReady();
 			//*****************************************************************************
 			
-			if (!this.priority_4.isEmpty()) {
+			if (!this.priority_4.isEmpty()) {											// Getting another process for executing
 				this.AddProcessIntoQueue(resultProcess);
 				resultProcess = this.priority_4.poll();
 			}
@@ -114,7 +109,7 @@ public class Scheduler {																// Priority range:
 			}
 		}
 
-		if(resultProcess.GetProcessStatus() != ProcessStatus.ISKILLING) {
+		if(resultProcess.GetProcessStatus() != ProcessStatus.ISKILLING) {				// If process ready to die, scheduler will not put it into queues
 			if(resultProcess.GetPID() != 0x00)
 				resultProcess.ReducePriority();
 			this.AddProcessIntoQueue(resultProcess);
@@ -122,7 +117,7 @@ public class Scheduler {																// Priority range:
 		return resultProcess;
 	}
 
-	public void KillProcess(Process p) {
+	public void KillProcess(Process p) {												// Removing scheduler information about killed process
 		if(inputProcessStream.contains(p))
 			inputProcessStream.remove(p);
 		if(priority_1.contains(p))

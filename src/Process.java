@@ -30,72 +30,61 @@ public class Process {
 		
 		this.CommandCounter 	= 0;
 		this.ProcessStatus 		= ProcessStatus.CREATION;
-		this.MemorySegments 	= new ArrayDeque<Byte>();									// Not allocated
+		this.MemorySegments 	= new ArrayDeque<Byte>();				// Not allocated
 	}
 	
-	public byte GetPID() {
+	public byte 				GetPID() {
 		return PID;
 	}
+	public ArrayDeque<Byte>		GetMemorySegments(){
+		return MemorySegments;
+	}
+	public String 				GetName(){
+		return Name;
+	}
+	public ProcessStatus 		GetProcessStatus() {
+		return this.ProcessStatus;
+	}
+	public int 					GetMemoryVolume() {
+		return this.MemoryVolume;
+	}
+	public byte 				GetPriority() {
+		return this.Priority;
+	}
 	
-	public void Display() {
+	public void 				SetReady() {
+		this.ProcessStatus = ProcessStatus.READINESS;
+	}
+	public void 				SetWaiting() {
+		this.ProcessStatus = ProcessStatus.BLOCKING;
+	}
+	public void 				SetExecuting() {						// Set process executable
+		this.ProcessStatus = ProcessStatus.EXECUTION;
+	}
+	public void 				SetSystemProcess() {
+		ChanceOfWaiting = 60;
+	}
+	
+	public void Display() {												// Displaying information about process
 		System.out.println(Integer.toHexString(PID) + "\t" + Integer.toString(CreationTime) + "\t"+ Integer.toHexString(CommandCounter) + "\t" + ProcessStatus.toString() 
 		+ "\t" + Integer.toString(MemoryVolume) + "\t" + Integer.toHexString(Priority) + "\t" + ((MemorySegments != null)? MemorySegments.toString() : "null"));
 	}
-	
 	public void AllocateMemory(ArrayDeque<Byte> MemorySegment) {		// Initialization Memory Segments
 		this.MemorySegments = MemorySegment;
 		this.ProcessStatus = ProcessStatus.READINESS;
 	}
-	
-	public ArrayDeque<Byte>	GetMemorySegments(){
-		return MemorySegments;
-	}
-	
-	public String GetName(){
-		return Name;
-	}
-	
-	public ProcessStatus GetProcessStatus() {
-		return this.ProcessStatus;
-	}
-	
-	public int GetMemoryVolume() {
-		return this.MemoryVolume;
-	}
-	
 	public void ReducePriority() {										// Decrease process priority
 		this.Priority = (byte) ((this.Priority - 1) == 0xffffffff ? this.Priority = 0x00 : (this.Priority - 1));
 	}
-	
-	public byte GetPriority() {
-		return this.Priority;
-	}
-	
-	public void SetReady() {
-		this.ProcessStatus = ProcessStatus.READINESS;
-	}
-	
-	public void SetWaiting() {
-		this.ProcessStatus = ProcessStatus.BLOCKING;
-	}
-	
-	public void SetExecuting() {										// Set process executable
-		this.ProcessStatus = ProcessStatus.EXECUTION;
-	}
-	
-	public void SetSystemProcess() {
-		ChanceOfWaiting = 60;
-	}
-	
 	public int Execute() {												// Executing function
 		Random rand = new Random(System.currentTimeMillis());
-		if((ProcessStatus == ProcessStatus.EXECUTION) || (ProcessStatus == ProcessStatus.READINESS)) {
+		if((ProcessStatus == ProcessStatus.EXECUTION) || (ProcessStatus == ProcessStatus.READINESS)) {	// If process can be executed
 			this.ProcessStatus = ProcessStatus.EXECUTION;
 			this.CommandCounter++;
-			if(PID != 0x00)
+			if(PID != 0x00)					// For system process it's not needed
 				this.ProceesorTime--;
 			
-			if(this.ProceesorTime <= 0) 
+			if(this.ProceesorTime <= 0) 	// Set process killed, if it's time runs out
 				this.ProcessStatus = ProcessStatus.ISKILLING;
 			
 			// Imitation process behavior

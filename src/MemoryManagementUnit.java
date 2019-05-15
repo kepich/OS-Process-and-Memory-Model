@@ -21,11 +21,11 @@ public class MemoryManagementUnit {
 	private			HashMap<Byte, Byte[]> 	Storage			= new HashMap<Byte, Byte[]>();			// Main data storage
 	private			HashMap<Byte, Byte[]> 	RAM				= new HashMap<Byte, Byte[]>();
 	
-	private			byte					boardOfSystem;
+	private			byte					boardOfSystem;				// Board of system data in RAM
 	
-	private			int						lastVirtAdress 	= 0x00;
-	private			int						lastPhysAdress 	= 0x00;
-	private			byte					lastNeededPage 	= 0;
+	private			int						lastVirtAdress 	= 0x00;		// Needed to trace process movings
+	private			int						lastPhysAdress 	= 0x00;		// *
+	private			byte					lastNeededPage 	= 0;		// *
 	
 	public MemoryManagementUnit(byte boardOfSystem) {
 		
@@ -37,7 +37,7 @@ public class MemoryManagementUnit {
 			this.LastHandling[i]	= 0;
 		}
 		
-		// OS data initialisation	***************************************
+		// OS data initialization	***************************************
 		for(byte i = 0; i < this.boardOfSystem; i++) {
 			this.TableOfPages[i]	= i;
 			this.BitMap[i]			= true;
@@ -47,15 +47,15 @@ public class MemoryManagementUnit {
 		}
 	}
 	public int getPhysicalAdress(int virtualAdress) {
-		for (int i = boardOfSystem; i < LastHandling.length; i++)								// Last handling update
+		for (int i = boardOfSystem; i < LastHandling.length; i++)				// Last handling update
 			LastHandling[i]++;
 		
 		while(true) {
 			// Search needed page in table and check it for mapping
 			byte row = (byte) (virtualAdress / this.PageSize);
-			if (this.BitMap[row]) {
+			if (this.BitMap[row]) {				// If page with this address in RAM, returning physical address
 				int newAddress = virtualAdress % this.PageSize + this.TableOfPages[row] * this.PageSize;
-				this.LastHandling[row] = 0;
+				this.LastHandling[row] = 0;		// Make this page demanded
 				
 				lastVirtAdress = virtualAdress;
 				lastPhysAdress = newAddress;
@@ -64,17 +64,17 @@ public class MemoryManagementUnit {
 				return newAddress;
 			}
 			else
-				this.Paging(virtualAdress);	// Page fault situation
+				this.Paging(virtualAdress);		// Page fault situation
 		}
 	}
-	private void Paging(int VirtualAdress) {
+	private void Paging(int VirtualAdress) {							// Paging procedure
 		//******************************************************************
 		int usedMostSeldom = this.LastHandling[(byte) (this.boardOfSystem)];
 		byte index = (byte) (this.boardOfSystem);
 		// Checking free space in RAM
 		boolean isFullRAM = (RAM.size() == NumberOfPages / 2);
 		
-		if(isFullRAM) {
+		if(isFullRAM) {			// If RAM is full -> swap most seldom used page with new
 			for (byte i = (byte) (this.boardOfSystem); i < this.NumberOfPages; i++) {			// Searching most seldom used
 				if((usedMostSeldom >= this.LastHandling[i]) && this.BitMap[i]){
 					usedMostSeldom = this.LastHandling[i];
@@ -82,7 +82,7 @@ public class MemoryManagementUnit {
 				}
 			}
 			
-			// Save on disk storage temp page and restore needed page
+			// Save on disk storage current page and restore needed page
 			Byte[] storedPage = this.RAM.get(this.TableOfPages[index]);
 			byte temp = (byte) (VirtualAdress / this.PageSize);
 			Byte[] restoredPage = this.Storage.get(temp);
@@ -97,7 +97,7 @@ public class MemoryManagementUnit {
 			this.TableOfPages[VirtualAdress / this.PageSize] = this.TableOfPages[index];
 			
 		}
-		else {
+		else {			// If RAM has free space, Paging is not needed
 			byte physAddr = 0x00;		// Free address in RAM							
 			// Searching free space in RAM
 			for(byte i = boardOfSystem; i < NumberOfPages / 2; i++) {
@@ -106,24 +106,25 @@ public class MemoryManagementUnit {
 					break;
 				}
 			}
-			
+			// Getting needed page from storage
 			byte temp = (byte) (VirtualAdress / this.PageSize);
 			Byte[] restoredPage = this.Storage.get(temp);
 			
+			// Loading this page in RAM and correcting the tables
 			this.RAM.put(physAddr, restoredPage);
 			this.BitMap[VirtualAdress / this.PageSize] = true;
 			this.TableOfPages[VirtualAdress / this.PageSize] = physAddr;
 		}
 		
 	}
-	public boolean AllocateMemory(Process proc) {
-		if (proc.GetPID() != 0x00) {
+	public boolean AllocateMemory(Process proc) {						// Allocating memory for processes
+		if (proc.GetPID() != 0x00) {									// If it's default process
 			int memVol 		= proc.GetMemoryVolume();
 			int neededPages = memVol / PageSize + ((memVol % PageSize > 0) ? 1 : 0);
 			int searchingSpace = 0;
 			byte segmentPosition = 0;
-			for (byte i = 0; i < NumberOfPages; i++) {
-				if ((TableOfPages[i] == 0x00) && !BitMap[i])							// Page is free
+			for (byte i = 0; i < NumberOfPages; i++) {					// Searching free CONTINUOUS segment
+				if ((TableOfPages[i] == 0x00) && !BitMap[i])			// Page is free
 					searchingSpace++;
 				else {
 					searchingSpace = 0;
@@ -134,16 +135,16 @@ public class MemoryManagementUnit {
 					ArrayDeque<Byte> memory = new ArrayDeque<Byte>();	// Allocating memory
 					for (byte j = 0; j < neededPages; j++) {
 						memory.push((byte) (segmentPosition + j));
-						TableOfPages[segmentPosition + j] = 0x01;
+						TableOfPages[segmentPosition + j] = 0x01;		// Correcting table of processes
 						Byte[] procData = {proc.GetPID(), proc.GetPID()};
-						Storage.put((byte)(segmentPosition + j), procData);
+						Storage.put((byte)(segmentPosition + j), procData);	// Saving process in storage
 					}
-					proc.AllocateMemory(memory);
-					return true;
+					proc.AllocateMemory(memory);						// Saving information about memory segments in process
+					return true;	// Correct terminating
 				}
 			}
 		}
-		else {
+		else {															// If it's SYSTEM process
 			ArrayDeque<Byte> memory = new ArrayDeque<Byte>();			// Allocating memory
 			memory.push((byte)(0x00));
 			proc.AllocateMemory(memory);
@@ -151,7 +152,7 @@ public class MemoryManagementUnit {
 		}
 		return false;
 	}
-	public void Display() {
+	public void Display() {												// Displaying all information about MMU
 		System.out.println("*****************************Virtual Memory Table*******************************");
 		System.out.println("lastPhysAdress:\t" + lastPhysAdress + "\t\tlastVirtAdress:\t" + lastVirtAdress + "\t\tlastNeededPage:\t" + lastNeededPage);
 		System.out.println("********************************************************************************");
@@ -190,7 +191,7 @@ public class MemoryManagementUnit {
 		}
 		System.out.println();
 	}
-	public void KillProcess(Process proc) {								// Cleaning All information about processes from RAM
+	public void KillProcess(Process proc) {								// Releasing All information about processes from RAM
 		ArrayDeque<Byte> MemorySegments = proc.GetMemorySegments();
 		
 		if(MemorySegments != null) {

@@ -11,9 +11,9 @@ public class Computer {
 	private static			MemoryManagementUnit	mmu;								// Memory manager
 	private static			int						systemTimer;
 	private static			Process 				tempExecutedProcess;
-	private static			ProcessGenerator		procGenerator;
+	private static			ProcessGenerator		procGenerator;						// Generate processes
 	
-	private	static final	byte					AMOUNT_OF_ALLOWED_TICKS = 8;
+	private	static final	byte					AMOUNT_OF_ALLOWED_TICKS = 8;		// Time slice lenght
 	private static final	byte					SYSTEM_DATA_BOARD 		= 1;		// 1 page
 	private static final	int						MAX_MEMORY_VOLUME		= 10;
 	private static final	int						MAX_PROC_TIME			= 60;
@@ -21,12 +21,13 @@ public class Computer {
 	private static			Random					RAND					= new Random();
 	
 	public static void main(String[] args) {
+		// Initialization ********************************************************************************
 		processTable			= new ArrayList<Process>();
 		mmu						= new MemoryManagementUnit(SYSTEM_DATA_BOARD);
 		systemTimer				= 0;
 		tempExecutedProcess		= null;
 		procGenerator			= new ProcessGenerator(MAX_MEMORY_VOLUME, MAX_PROC_TIME);
-		processTable			= procGenerator.GenerateProcessPopulation(systemTimer, -1);
+		processTable			= procGenerator.GenerateProcessPopulation(systemTimer, -1);		// Creating SYSTEM process
 		
 		scheduler				= new Scheduler();
 		for (Process i : processTable) {
@@ -39,7 +40,7 @@ public class Computer {
 			CreateProcess();															// Creating process
 			tempExecutedProcess = scheduler.getTempExecutedProcess();					// Getting temp executed process from scheduler
 			
-			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) {
+			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) {		// Killing process
 				KillProcess(tempExecutedProcess);
 				InfoDelay();
 				continue;
@@ -48,13 +49,9 @@ public class Computer {
 			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.CREATION) {							// Allocating memory
 				if(mmu.AllocateMemory(tempExecutedProcess)) {
 					mmu.getPhysicalAdress(tempExecutedProcess.GetMemorySegments().getLast() * 4096 + 1);	// Loading process into the memory
-					/*
-					 * Memory allocated successfully
-					 * 
-					 */
 				}
 				else {
-					KillProcess(tempExecutedProcess);
+					KillProcess(tempExecutedProcess);														// Displaying error and killing process
 					System.out.println("ERROR!!! NOT ENOUGHT MEMORY FOR: ");
 					System.out.println("Name\tPID\tCrTime\tComCntr\tStat\t\tMemVol\tPrior\tMemSeg");
 					System.out.println("********************************************************************************");
@@ -67,22 +64,23 @@ public class Computer {
 			
 			for (byte i = 0; i < AMOUNT_OF_ALLOWED_TICKS; i++) {
 				systemTimer++;
-				int nextAdress = tempExecutedProcess.Execute();							// Process executing
+				int nextAdress = tempExecutedProcess.Execute();									// Process executing
 				InfoDelay();
-				if ((tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) || (tempExecutedProcess.GetProcessStatus() == ProcessStatus.BLOCKING))
+				if ((tempExecutedProcess.GetProcessStatus() == ProcessStatus.ISKILLING) ||
+						(tempExecutedProcess.GetProcessStatus() == ProcessStatus.BLOCKING))		// Redistribution of time slice remain
 					break;
 				else
-					mmu.getPhysicalAdress(nextAdress);									// Execution imitation
+					mmu.getPhysicalAdress(nextAdress);											// Execution imitation
 			}
 			
-			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.EXECUTION)
+			if(tempExecutedProcess.GetProcessStatus() == ProcessStatus.EXECUTION)				// Setting process ready
 				tempExecutedProcess.SetReady();
 			
 			InfoDelay();
 		}
 	}
 	
-	private static void InfoDelay() {
+	private static void InfoDelay() {				// Displaying system information
 		Scanner in = new Scanner(System.in);
 		System.out.println("********************************************************************************\n");
 		scheduler.Display();
@@ -96,7 +94,7 @@ public class Computer {
 		in.nextLine();
 	}
 	
-	private static void DisplayTable() {
+	private static void DisplayTable() {			// Displaying process table
 		System.out.println("******************************Process Table************************************");
 		System.out.println("PID\tCrTime\tComCntr\tStat\t\tMemVol\tPrior\tMemSeg");
 		System.out.println("********************************************************************************");
@@ -105,7 +103,7 @@ public class Computer {
 		}
 	}
 	
-	private static void CreateProcess() {
+	private static void CreateProcess() {			// Create process with some probability
 		Process processTable_BUFFER = null;
 		
 		if((Math.abs(RAND.nextInt()) % 100) < PROCESS_SPAWNING_CHANCE) {
@@ -116,7 +114,7 @@ public class Computer {
 		}
 	}
 	
-	private static void KillProcess(Process p) {
+	private static void KillProcess(Process p) {	// Killing process and releasing resources
 		System.out.println("Killing process");
 		mmu.KillProcess(p);
 		processTable.remove(p);
